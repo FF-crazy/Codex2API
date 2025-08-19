@@ -95,6 +95,70 @@ uvicorn codex2api.main:app --host 0.0.0.0 --port 8000 --reload
 
 The API will be available at `http://localhost:8000`
 
+## First-Time Setup
+
+### Easy Setup (Recommended)
+
+For first-time users, we provide helper scripts to make setup easier:
+
+```bash
+# 🚀 Super simple setup (recommended)
+python scripts/simple_auth.py
+
+# 🔧 Or quick start with automatic setup
+python scripts/start.py
+
+# 📋 Or manual step-by-step setup
+python scripts/setup_auth.py
+python -m codex2api.main
+```
+
+### Authentication Setup Options
+
+We provide three different setup methods:
+
+#### 1. Simple Setup (Easiest) 🚀
+
+```bash
+python scripts/simple_auth.py
+```
+
+- ✅ Runs a local callback server
+- ✅ Handles OAuth automatically
+- ✅ No manual URL copying needed
+- ✅ Works out of the box
+
+#### 2. Manual Setup (Advanced) 📋
+
+```bash
+python scripts/setup_auth.py
+```
+
+- ✅ Step-by-step guidance
+- ✅ Manual URL copying required
+- ✅ More control over the process
+- ✅ Works with any OAuth configuration
+
+#### 3. Check Status 🔍
+
+```bash
+python scripts/check_auth.py
+```
+
+- ✅ Check existing tokens
+- ✅ Validate authentication
+- ✅ Show usage statistics
+- ✅ Clean up expired sessions
+
+All setup scripts will:
+
+1. ✅ Check for existing tokens
+2. 🌐 Open browser for OAuth login
+3. 🔄 Exchange authorization code for tokens
+4. 💾 Store tokens securely
+5. 🧪 Test authentication
+6. 📋 Show usage instructions
+
 ## Usage
 
 ### OpenAI Client Compatibility
@@ -133,7 +197,7 @@ reasoning_response = client.chat.completions.create(
 print(reasoning_response.choices[0].message.content)
 ```
 
-### Authentication
+### Authentication Flow
 
 1. **Login**: POST `/v1/auth/login` to get OAuth URL
 2. **Callback**: Complete OAuth flow at `/v1/auth/callback`
@@ -151,26 +215,15 @@ print(reasoning_response.choices[0].message.content)
 - `GET /v1/models` - List all models
 - `GET /v1/models/{model_id}` - Get model details
 
-#### Authentication
+#### Auth Endpoints
 
 - `POST /v1/auth/login` - Start OAuth login
 - `GET /v1/auth/status` - Check auth status
 - `POST /v1/auth/logout` - Logout
 
-### Supported Models
-
-- `gpt-4` - Most capable GPT-4 model
-- `gpt-4-turbo` - Faster GPT-4 with larger context
-- `gpt-4o` - Omni-modal GPT-4 with vision
-- `gpt-4o-mini` - Smaller, faster GPT-4o
-- `gpt-3.5-turbo` - Fast and efficient model
-- `o1` - Advanced reasoning model (supports reasoning parameters)
-- `o1-mini` - Smaller reasoning model (supports reasoning parameters)
-- `o1-preview` - Preview reasoning model (supports reasoning parameters)
-
 ### Reasoning Parameters
 
-For o1 models, you can control reasoning behavior using request parameters:
+For o3-like models, you can control reasoning behavior using request parameters:
 
 - `reasoning_effort`: Controls reasoning intensity (`"low"`, `"medium"`, `"high"`)
 - `reasoning_summary`: Controls summary format (`"auto"`, `"concise"`, `"detailed"`, `"none"`)
@@ -195,14 +248,14 @@ curl -X POST "http://localhost:8000/v1/chat/completions" \
   }'
 ```
 
-#### Reasoning Models (o1)
+#### Reasoning Models (o3-like)
 
 ```bash
 curl -X POST "http://localhost:8000/v1/chat/completions" \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer your-token" \
   -d '{
-    "model": "o1",
+    "model": "o3",
     "messages": [
       {"role": "user", "content": "Solve this complex math problem..."}
     ],
@@ -261,99 +314,6 @@ Run with:
 
 ```bash
 docker-compose up -d
-```
-
-## Production Deployment
-
-### Environment Variables
-
-```env
-# Production settings
-ENVIRONMENT=production
-DEBUG=false
-SERVER_WORKERS=4
-SERVER_RELOAD=false
-
-# Security
-AUTH_CLIENT_ID=your_production_client_id
-AUTH_REDIRECT_URI=https://your-domain.com/v1/auth/callback
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FILE_PATH=/app/logs/codex2api.log
-
-# Database
-DB_URL=sqlite:///app/data/codex2api.db
-```
-
-### Reverse Proxy (Nginx)
-
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:8000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-### Systemd Service
-
-#### Using uv (Recommended)
-
-Create `/etc/systemd/system/codex2api.service`:
-
-```ini
-[Unit]
-Description=Codex2API Service
-After=network.target
-
-[Service]
-Type=exec
-User=codex2api
-WorkingDirectory=/opt/codex2api
-ExecStart=/usr/local/bin/uv run python -m codex2api.main
-Restart=always
-RestartSec=3
-Environment=ENVIRONMENT=production
-
-[Install]
-WantedBy=multi-user.target
-```
-
-#### Traditional way
-
-Create `/etc/systemd/system/codex2api.service`:
-
-```ini
-[Unit]
-Description=Codex2API Service
-After=network.target
-
-[Service]
-Type=exec
-User=codex2api
-WorkingDirectory=/opt/codex2api
-Environment=PATH=/opt/codex2api/.venv/bin
-ExecStart=/opt/codex2api/.venv/bin/python -m codex2api.main
-Restart=always
-RestartSec=3
-
-[Install]
-WantedBy=multi-user.target
-```
-
-Enable and start:
-
-```bash
-sudo systemctl enable codex2api
-sudo systemctl start codex2api
 ```
 
 ## Health Check

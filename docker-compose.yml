@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  codex2api:
+    build: .
+    container_name: codex2api
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - PYTHONPATH=/app
+    volumes:
+      # Mount auth.json and models.json for configuration
+      - ./auth.json:/app/auth.json:ro
+      - ./models.json:/app/models.json:ro
+      # Optional: mount .env file if you have one
+      - ./.env:/app/.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - codex2api-network
+
+networks:
+  codex2api-network:
+    driver: bridge

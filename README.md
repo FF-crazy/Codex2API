@@ -1,22 +1,22 @@
 # Codex2API
 
-Modern OpenAI compatible API powered by ChatGPT.
+Modern OpenAI compatible API powered by ChatGPT. This project converts Codex quota to OpenAI format API interface, allowing users to use API with just a Plus or Pro account without needing a developer platform account.
 
 ## Prerequisites
 
 - Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip for dependency management
+- [uv](https://docs.astral.sh/uv/) (recommended) for dependency management
+- ChatGPT Plus/Pro account for authentication
 
 ## Quick Start
 
 ### Installation
 
-
 [uv](https://docs.astral.sh/uv/) is a fast Python package manager that provides better dependency resolution, faster installs, and modern Python project management.
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/Codex2API.git
+git clone https://github.com/FF-crazy/Codex2API.git
 cd Codex2API
 
 # Install uv if you haven't already
@@ -29,19 +29,47 @@ uv sync
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
+### Authentication Setup
+
+Before running the server, you need to set up authentication with your ChatGPT Plus/Pro account:
+Using Codex, after logging in your account, then run the following command:
+
+1. Run the authentication script to get your token:
+
+   ```bash
+   uv run get_token.py
+   ```
+
+2. Follow the prompts to authenticate with your ChatGPT account
+
+3. The authentication information will be saved to `auth.json`
 
 ### Run the Server
 
-```bash
-# Development mode with auto-reload
-uv run python -m codex2api.main
+#### Option 1: Quick Start Script (Recommended)
 
-# Or using uvicorn directly
-uv run uvicorn codex2api.main:app --host 0.0.0.0 --port 8000 --reload
+```bash
+# Make the script executable and run
+chmod +x start.sh
+./start.sh
 ```
 
+The script will automatically:
 
-The API will be available at `http://localhost:8000`
+- Install uv if not present
+- Install dependencies
+- Check for authentication
+- Create .env file from template
+- Start the server
+
+#### Option 2: Manual Start
+
+```bash
+# Development mode
+uv run main.py
+```
+
+The API will be available at `http://localhost:{PORT}`
 
 ## Docker Deployment
 
@@ -51,46 +79,50 @@ The API will be available at `http://localhost:8000`
 # Build image
 docker build -t codex2api .
 
-# Run container
+# Run container (make sure auth.json exists)
 docker run -d \
   --name codex2api \
   -p 8000:8000 \
-  -e SERVER_HOST=0.0.0.0 \
-  -e SERVER_PORT=8000 \
+  -v $(pwd)/auth.json:/app/auth.json:ro \
+  -v $(pwd)/models.json:/app/models.json:ro \
+  -e HOST=0.0.0.0 \
+  -e PORT=8000 \
   codex2api
 ```
 
 ### Using Docker Compose
 
-Create `docker-compose.yml`:
-
-```yaml
-version: '3.8'
-
-services:
-  codex2api:
-    build: .
-    ports:
-      - "8000:8000"
-    environment:
-      - SERVER_HOST=0.0.0.0
-      - SERVER_PORT=8000
-      - ENVIRONMENT=production
-      - DEBUG=false
-    volumes:
-      - ./data:/app/data
-    restart: unless-stopped
-```
-
-Run with:
+The project includes a `docker-compose.yml` file for easy deployment:
 
 ```bash
+# Start the service
 docker-compose up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop the service
+docker-compose down
 ```
 
-### Authentication Setup
+**Note**: Make sure you have completed the authentication setup and have `auth.json` file before running Docker containers.
 
-You need a **ChatGPT Plus/Pro account** to use this service.
+### Testing Docker Setup
+
+To test your Docker configuration:
+
+```bash
+# Make the test script executable and run
+chmod +x docker-test.sh
+./docker-test.sh
+```
+
+This script will:
+
+- Build the Docker image
+- Run a test container
+- Test the health endpoint
+- Clean up automatically
 
 ## Usage
 
@@ -103,13 +135,13 @@ import openai
 
 # Configure client
 client = openai.OpenAI(
-    api_key="your-api-key",  # Will be set by yourself
+    api_key="your-api-key",  # Can be any string, not validated
     base_url="http://localhost:8000/v1"
 )
 
 # Use as normal OpenAI client
 response = client.chat.completions.create(
-    model="gpt-5",
+    model="gpt-4",
     messages=[
         {"role": "user", "content": "Hello, world!"}
     ]
@@ -129,7 +161,6 @@ reasoning_response = client.chat.completions.create(
 
 print(reasoning_response.choices[0].message.content)
 ```
-
 
 ### Available Endpoints
 
@@ -191,22 +222,75 @@ curl -X GET "http://localhost:8000/v1/models" \
   -H "Authorization: Bearer your-token"
 ```
 
+## Configuration
 
+### Environment Variables
 
-## Health Check
-
-Check if the service is running:
+You can configure the server using environment variables. Copy `.env.example` to `.env` and modify as needed:
 
 ```bash
-curl http://localhost:8000/health
+cp .env.example .env
 ```
 
-Response:
+Available environment variables:
 
-```json
-{
-  "status": "healthy",
-  "version": "0.2.0",
-  "timestamp": 1640995200.0
-}
+- `HOST`: Server host (default: 0.0.0.0)
+- `PORT`: Server port (default: 8000)
+- `PYTHONPATH`: Python path for imports (default: /app in Docker)
+
+### Authentication
+
+The server uses the authentication information stored in `auth.json`. This file is created when you run `get_token.py` and contains your ChatGPT session information.
+
+To refresh your authentication token:
+
+```bash
+uv run refresh_auth.py
 ```
+
+## Development
+
+### Project Structure
+
+```text
+Codex2API/
+├── codex2api/          # Main package
+│   ├── __init__.py
+│   ├── server.py       # FastAPI server
+│   ├── models.py       # Data models
+│   ├── request.py      # Request handling
+│   └── utils.py        # Utility functions
+├── main.py             # Entry point
+├── start.sh            # Quick start script
+├── docker-test.sh      # Docker testing script
+├── get_token.py        # Authentication setup
+├── refresh_auth.py     # Token refresh
+├── auth.json           # Authentication data (created by get_token.py)
+├── models.json         # Available models configuration
+├── pyproject.toml      # Project configuration
+├── .env.example        # Environment variables template
+├── .dockerignore       # Docker ignore file
+├── Dockerfile          # Docker image definition
+├── docker-compose.yml  # Docker Compose configuration
+└── README.md           # This file
+```
+
+### Health Check
+
+The server provides a health check endpoint at `/health` that returns the server status and timestamp.
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test your changes
+5. Submit a pull request
+
+## Support
+
+If you encounter any issues or have questions, please open an issue on the GitHub repository.

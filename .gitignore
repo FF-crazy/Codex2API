@@ -13,3 +13,4 @@ wheels/
 .augment
 
 auth.json
+.DS_Store

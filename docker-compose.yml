@@ -5,11 +5,17 @@ services:
     build: .
     container_name: codex2api
     ports:
-      - "8000:8000"
+      - "11451:11451"
     environment:
       - HOST=0.0.0.0
-      - PORT=8000
+      - PORT=11451
       - PYTHONPATH=/app
+      # API Configuration
+      - KEY=sk-test
+      # Reasoning Configuration
+      - REASONING_EFFORT=medium
+      - REASONING_SUMMARY=true
+      - REASONING_COMPAT=think-tags
     volumes:
       # Mount auth.json and models.json for configuration
       - ./auth.json:/app/auth.json:ro
@@ -18,7 +24,7 @@ services:
       - ./.env:/app/.env:ro
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:11451/health"]
       interval: 30s
       timeout: 10s
       retries: 3

@@ -28,16 +28,16 @@ RUN chown -R app:app /app
 USER app
 
 # Expose port
-EXPOSE 8000
+EXPOSE 11451
 
 # Set environment variables
 ENV HOST=0.0.0.0
-ENV PORT=8000
+ENV PORT=11451
 ENV PYTHONPATH=/app
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8000/health || exit 1
+    CMD curl -f http://localhost:11451/health || exit 1
 
 # Run the application
 CMD ["uv", "run", "main.py"]

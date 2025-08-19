@@ -11,3 +11,5 @@ wheels/
 
 # Other
 .augment
+
+auth.json

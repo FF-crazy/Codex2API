@@ -11,7 +11,6 @@ Modern OpenAI compatible API powered by ChatGPT.
 
 ### Installation
 
-#### Modern Way (Recommended - using uv)
 
 [uv](https://docs.astral.sh/uv/) is a fast Python package manager that provides better dependency resolution, faster installs, and modern Python project management.
 
@@ -30,29 +29,9 @@ uv sync
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-#### Traditional Way (using pip)
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/Codex2API.git
-cd Codex2API
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Configuration
-
 Create a `.env` file in the project root (copy from `.env.example`):
 
-
 ### Run the Server
-
-#### Using uv (Recommended)
 
 ```bash
 # Development mode with auto-reload
@@ -62,143 +41,8 @@ uv run python -m codex2api.main
 uv run uvicorn codex2api.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-#### Traditional way
-
-```bash
-# Development mode
-python -m codex2api.main
-
-# Or using uvicorn directly
-uvicorn codex2api.main:app --host 0.0.0.0 --port 8000 --reload
-```
 
 The API will be available at `http://localhost:8000`
-
-## First-Time Setup
-
-### Easy Setup (Recommended)
-
-For first-time users, we provide a simple token extraction tool:
-
-```bash
-# 🔑 Extract your ChatGPT session token
-python scripts/extract_token.py
-
-# 🚀 Start the server
-python -m codex2api.main
-```
-
-### Authentication Setup
-
-You need a **ChatGPT Plus/Pro account** to use this service.
-
-
-## Usage
-
-### OpenAI Client Compatibility
-
-Use any OpenAI client library by changing the base URL:
-
-```python
-import openai
-
-# Configure client
-client = openai.OpenAI(
-    api_key="your-api-key",  # Will be handled by authentication
-    base_url="http://localhost:8000/v1"
-)
-
-# Use as normal OpenAI client
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=[
-        {"role": "user", "content": "Hello, world!"}
-    ]
-)
-
-print(response.choices[0].message.content)
-
-# For reasoning models (o1), you can specify reasoning parameters
-reasoning_response = client.chat.completions.create(
-    model="o1",
-    messages=[
-        {"role": "user", "content": "Solve this complex problem step by step..."}
-    ],
-    reasoning_effort="high",  # User controls reasoning effort
-    reasoning_summary="detailed"  # User controls summary format
-)
-
-print(reasoning_response.choices[0].message.content)
-```
-
-
-### Available Endpoints
-
-#### Chat Completions
-
-- `POST /v1/chat/completions` - Create chat completion
-- `GET /v1/chat/models` - List chat models
-
-#### Models
-
-- `GET /v1/models` - List all models
-- `GET /v1/models/{model_id}` - Get model details
-
-#### Auth Endpoints
-
-- `POST /v1/auth/login` - Start OAuth login
-- `GET /v1/auth/status` - Check auth status
-- `POST /v1/auth/logout` - Logout
-
-### Reasoning Parameters
-
-For o3-like models, you can control reasoning behavior using request parameters:
-
-- `reasoning_effort`: Controls reasoning intensity (`"low"`, `"medium"`, `"high"`)
-- `reasoning_summary`: Controls summary format (`"auto"`, `"concise"`, `"detailed"`, `"none"`)
-- `reasoning_compat`: Compatibility mode (`"legacy"`, `"o3"`, `"think-tags"`, `"current"`)
-
-**Important**: These are request parameters controlled by users, not server configuration.
-
-### Example Requests
-
-#### Chat Completion
-
-```bash
-curl -X POST "http://localhost:8000/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-token" \
-  -d '{
-    "model": "gpt-4",
-    "messages": [
-      {"role": "user", "content": "Hello!"}
-    ],
-    "temperature": 0.7
-  }'
-```
-
-#### Reasoning Models (o3-like)
-
-```bash
-curl -X POST "http://localhost:8000/v1/chat/completions" \
-  -H "Content-Type: application/json" \
-  -H "Authorization: Bearer your-token" \
-  -d '{
-    "model": "o3",
-    "messages": [
-      {"role": "user", "content": "Solve this complex math problem..."}
-    ],
-    "reasoning_effort": "high",
-    "reasoning_summary": "detailed"
-  }'
-```
-
-#### List Models
-
-```bash
-curl -X GET "http://localhost:8000/v1/models" \
-  -H "Authorization: Bearer your-token"
-```
 
 ## Docker Deployment
 
@@ -245,6 +89,111 @@ Run with:
 docker-compose up -d
 ```
 
+### Authentication Setup
+
+You need a **ChatGPT Plus/Pro account** to use this service.
+
+## Usage
+
+### OpenAI Client Compatibility
+
+Use any OpenAI client library by changing the base URL:
+
+```python
+import openai
+
+# Configure client
+client = openai.OpenAI(
+    api_key="your-api-key",  # Will be set by yourself
+    base_url="http://localhost:8000/v1"
+)
+
+# Use as normal OpenAI client
+response = client.chat.completions.create(
+    model="gpt-5",
+    messages=[
+        {"role": "user", "content": "Hello, world!"}
+    ]
+)
+
+print(response.choices[0].message.content)
+
+# For reasoning models (o1), you can specify reasoning parameters
+reasoning_response = client.chat.completions.create(
+    model="o1",
+    messages=[
+        {"role": "user", "content": "Solve this complex problem step by step..."}
+    ],
+    reasoning_effort="high",  # User controls reasoning effort
+    reasoning_summary="detailed"  # User controls summary format
+)
+
+print(reasoning_response.choices[0].message.content)
+```
+
+
+### Available Endpoints
+
+#### Chat Completions
+
+- `POST /v1/chat/completions` - Create chat completion
+- `GET /v1/chat/models` - List chat models
+
+#### Models
+
+- `GET /v1/models` - List all models
+- `GET /v1/models/{model_id}` - Get model details
+
+### Reasoning Parameters
+
+For o3-like models, you can control reasoning behavior using request parameters:
+
+- `reasoning_effort`: Controls reasoning intensity (`"low"`, `"medium"`, `"high"`)
+- `reasoning_summary`: Controls summary format (`"auto"`, `"concise"`, `"detailed"`, `"none"`)
+- `reasoning_compat`: Compatibility mode (`"legacy"`, `"o3"`, `"think-tags"`, `"current"`)
+
+**Important**: These are request parameters controlled by users, not server configuration.
+
+#### Chat Completion
+
+```bash
+curl -X POST "http://localhost:8000/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "model": "gpt-4",
+    "messages": [
+      {"role": "user", "content": "Hello!"}
+    ],
+    "temperature": 0.7
+  }'
+```
+
+#### Reasoning Models (o3-like)
+
+```bash
+curl -X POST "http://localhost:8000/v1/chat/completions" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your-token" \
+  -d '{
+    "model": "o3",
+    "messages": [
+      {"role": "user", "content": "Solve this complex math problem..."}
+    ],
+    "reasoning_effort": "high",
+    "reasoning_summary": "detailed"
+  }'
+```
+
+#### List Models
+
+```bash
+curl -X GET "http://localhost:8000/v1/models" \
+  -H "Authorization: Bearer your-token"
+```
+
+
+
 ## Health Check
 
 Check if the service is running:
@@ -262,10 +211,3 @@ Response:
   "timestamp": 1640995200.0
 }
 ```
-
-## API Documentation
-
-When running in development mode, visit:
-
-- Swagger UI: `http://localhost:8000/docs`
-- ReDoc: `http://localhost:8000/redoc`

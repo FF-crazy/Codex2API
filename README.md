@@ -82,11 +82,13 @@ docker build -t codex2api .
 # Run container (make sure auth.json exists)
 docker run -d \
   --name codex2api \
-  -p 8000:8000 \
+  -p 11451:11451 \
   -v $(pwd)/auth.json:/app/auth.json:ro \
   -v $(pwd)/models.json:/app/models.json:ro \
+  -v $(pwd)/.env:/app/.env:ro \
   -e HOST=0.0.0.0 \
-  -e PORT=8000 \
+  -e PORT=11451 \
+  -e KEY=your-secure-api-key \
   codex2api
 ```
 
@@ -104,6 +106,31 @@ docker-compose logs -f
 # Stop the service
 docker-compose down
 ```
+
+#### Docker Compose Configuration
+
+The `docker-compose.yml` file includes:
+
+- **Port mapping**: `11451:11451` (external:internal)
+- **Environment variables**: Pre-configured with sensible defaults
+- **Volume mounts**:
+  - `auth.json` (required for authentication)
+  - `models.json` (model configuration)
+  - `.env` (optional environment overrides)
+- **Health check**: Automatic container health monitoring
+- **Restart policy**: `unless-stopped` for reliability
+
+#### Environment Variables in Docker
+
+You can override environment variables in several ways:
+
+1. **Modify docker-compose.yml** (recommended for permanent changes)
+2. **Use .env file** (mounted as volume)
+3. **Command line override**:
+
+   ```bash
+   KEY=your-api-key docker-compose up -d
+   ```
 
 **Note**: Make sure you have completed the authentication setup and have `auth.json` file before running Docker containers.
 
@@ -126,6 +153,19 @@ This script will:
 
 ## Usage
 
+### API Authentication
+
+The API requires authentication using the `KEY` environment variable. By default, it's set to `sk-test`, but you should change this in production:
+
+- **Development**: Use `sk-test` (default)
+- **Production**: Set a secure API key in your environment variables
+
+The API key should be provided in the `Authorization` header:
+
+```http
+Authorization: Bearer your-api-key
+```
+
 ### OpenAI Client Compatibility
 
 Use any OpenAI client library by changing the base URL:
@@ -135,8 +175,8 @@ import openai
 
 # Configure client
 client = openai.OpenAI(
-    api_key="your-api-key",  # Can be any string, not validated
-    base_url="http://localhost:8000/v1"
+    api_key="sk-test",  # Use the KEY from your environment variables
+    base_url="http://localhost:11451/v1"  # Note: Docker uses port 11451
 )
 
 # Use as normal OpenAI client
@@ -234,9 +274,46 @@ cp .env.example .env
 
 Available environment variables:
 
+#### Server Configuration
+
 - `HOST`: Server host (default: 0.0.0.0)
-- `PORT`: Server port (default: 8000)
+- `PORT`: Server port (default: 8000, Docker uses 11451)
 - `PYTHONPATH`: Python path for imports (default: /app in Docker)
+
+#### API Security
+
+- `KEY`: API key for authentication (default: sk-test)
+  - **Important**: Change this to a secure key in production!
+
+#### Reasoning Configuration
+
+- `REASONING_EFFORT`: AI reasoning effort level (default: medium)
+  - Options: `low`, `medium`, `high`
+- `REASONING_SUMMARY`: Enable reasoning summary in responses (default: true)
+  - Options: `true`, `false`
+- `REASONING_COMPAT`: Reasoning compatibility mode (default: think-tags)
+  - Options: `think-tags`, `openai-o1`
+
+#### Optional Configuration
+
+- `CHATGPT_LOCAL_HOME`: Custom directory for ChatGPT local files
+- `CODEX_HOME`: Custom directory for Codex files
+
+### Example .env file
+
+```bash
+# Server Configuration
+HOST=0.0.0.0
+PORT=8000
+
+# API Security - CHANGE THIS IN PRODUCTION!
+KEY=your-secure-api-key-here
+
+# Reasoning Configuration
+REASONING_EFFORT=medium
+REASONING_SUMMARY=true
+REASONING_COMPAT=think-tags
+```
 
 ### Authentication
 

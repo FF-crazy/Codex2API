@@ -206,14 +206,18 @@ class ChatGPTRequestHandler:
         if not isinstance(model, str):
             return "gpt-5"
 
-        model = model.strip().lower()
-        supported_models = [m.lower() for m in load_supported_models()]
+        model = model.strip()
+        supported_models = load_supported_models()  # This returns a list of strings
 
-        # If the model is in our supported list, use it
+        # If the model is in our supported list, use it as-is
         if model in supported_models:
-            # For now, we still map everything to gpt-5 for the actual API call
-            # but we validate against the models.json file
-            return "gpt-5"
+            return model
+
+        # Check case-insensitive match
+        model_lower = model.lower()
+        for supported_model in supported_models:
+            if supported_model.lower() == model_lower:
+                return supported_model
 
         # Default fallback
         return "gpt-5"

@@ -10,9 +10,10 @@ import time
 from contextlib import asynccontextmanager
 from typing import Any, Dict, List, Optional, Union
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 
@@ -20,6 +21,25 @@ from .request import ChatGPTRequestHandler
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Security
+security = HTTPBearer()
+
+
+def verify_api_key(credentials: HTTPAuthorizationCredentials = Depends(security)) -> str:
+    """Verify API key from Authorization header."""
+    expected_key = os.getenv("KEY", "sk-test")
+
+    if not credentials:
+        raise HTTPException(status_code=401, detail="Missing Authorization header")
+
+    # Extract the key from "Bearer sk-xxx" format
+    provided_key = credentials.credentials
+
+    if provided_key != expected_key:
+        raise HTTPException(status_code=401, detail="Invalid API key")
+
+    return provided_key
 
 
 def load_models_from_file() -> List[Dict[str, Any]]:
@@ -179,7 +199,9 @@ def create_app(
         }
 
     @app.post("/v1/chat/completions")
-    async def chat_completions(request_data: ChatCompletionRequest):
+    async def chat_completions(
+        request_data: ChatCompletionRequest, api_key: str = Depends(verify_api_key)
+    ):
         """Handle chat completion requests."""
         if not request_handler:
             raise HTTPException(status_code=500, detail="Request handler not initialized")
@@ -226,7 +248,7 @@ def create_app(
             raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
     @app.post("/v1/completions")
-    async def completions(request_data: CompletionRequest):
+    async def completions(request_data: CompletionRequest, api_key: str = Depends(verify_api_key)):
         """Handle text completion requests."""
         if not request_handler:
             raise HTTPException(status_code=500, detail="Request handler not initialized")

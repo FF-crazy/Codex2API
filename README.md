@@ -29,7 +29,6 @@ uv sync
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
-Create a `.env` file in the project root (copy from `.env.example`):
 
 ### Run the Server
 

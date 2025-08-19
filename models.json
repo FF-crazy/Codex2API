@@ -1,0 +1,12 @@
+{
+  "models": [
+    {
+      "name": "gpt-5",
+      "id": "gpt-5"
+    },
+    {
+      "name": "codex-mini",
+      "id": "codex-mini"
+    }
+  ]
+}

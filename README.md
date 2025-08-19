@@ -49,27 +49,6 @@ pip install -r requirements.txt
 
 Create a `.env` file in the project root (copy from `.env.example`):
 
-```env
-# Server Configuration
-SERVER_HOST=0.0.0.0
-SERVER_PORT=8000
-SERVER_RELOAD=true
-
-# Authentication (get client ID from OpenAI developer console)
-AUTH_CLIENT_ID=your_openai_client_id_here
-AUTH_REDIRECT_URI=http://localhost:8000/v1/auth/callback
-
-# Application
-ENVIRONMENT=development
-DEBUG=true
-
-# Logging
-LOG_LEVEL=INFO
-LOG_FORMAT=json
-
-# Data Directory
-DATA_DIR=./data
-```
 
 ### Run the Server
 
@@ -99,65 +78,20 @@ The API will be available at `http://localhost:8000`
 
 ### Easy Setup (Recommended)
 
-For first-time users, we provide helper scripts to make setup easier:
+For first-time users, we provide a simple token extraction tool:
 
 ```bash
-# 🚀 Super simple setup (recommended)
-python scripts/simple_auth.py
+# 🔑 Extract your ChatGPT session token
+python scripts/extract_token.py
 
-# 🔧 Or quick start with automatic setup
-python scripts/start.py
-
-# 📋 Or manual step-by-step setup
-python scripts/setup_auth.py
+# 🚀 Start the server
 python -m codex2api.main
 ```
 
-### Authentication Setup Options
+### Authentication Setup
 
-We provide three different setup methods:
+You need a **ChatGPT Plus/Pro account** to use this service.
 
-#### 1. Simple Setup (Easiest) 🚀
-
-```bash
-python scripts/simple_auth.py
-```
-
-- ✅ Runs a local callback server
-- ✅ Handles OAuth automatically
-- ✅ No manual URL copying needed
-- ✅ Works out of the box
-
-#### 2. Manual Setup (Advanced) 📋
-
-```bash
-python scripts/setup_auth.py
-```
-
-- ✅ Step-by-step guidance
-- ✅ Manual URL copying required
-- ✅ More control over the process
-- ✅ Works with any OAuth configuration
-
-#### 3. Check Status 🔍
-
-```bash
-python scripts/check_auth.py
-```
-
-- ✅ Check existing tokens
-- ✅ Validate authentication
-- ✅ Show usage statistics
-- ✅ Clean up expired sessions
-
-All setup scripts will:
-
-1. ✅ Check for existing tokens
-2. 🌐 Open browser for OAuth login
-3. 🔄 Exchange authorization code for tokens
-4. 💾 Store tokens securely
-5. 🧪 Test authentication
-6. 📋 Show usage instructions
 
 ## Usage
 
@@ -197,11 +131,6 @@ reasoning_response = client.chat.completions.create(
 print(reasoning_response.choices[0].message.content)
 ```
 
-### Authentication Flow
-
-1. **Login**: POST `/v1/auth/login` to get OAuth URL
-2. **Callback**: Complete OAuth flow at `/v1/auth/callback`
-3. **Use API**: Include session cookie or bearer token in requests
 
 ### Available Endpoints
 
